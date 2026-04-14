@@ -25,19 +25,19 @@ def main(argv: list[str] | None = None) -> int:
         "--step",
         type=float,
         default=None,
-        help="Rendering step (1-5 or 4.1). Default: run all steps.",
+        help="Rendering step (1-6 or 3.1). Default: run all steps.",
     )
     parser.add_argument(
         "--rays-per-pixel",
         type=int,
         default=None,
-        help="Primary rays per pixel for antialiasing. Auto: 1 for steps 1-2, 4 for 3-5.",
+        help="Primary rays per pixel for antialiasing. Auto: 1 for steps 1-2, 4 for 3-3.1, 8 for 4-6.",
     )
     parser.add_argument(
         "--light-samples",
         type=int,
         default=None,
-        help="Shadow rays per area light sample. Auto: 1 for point light, 16 for area light.",
+        help="Shadow rays per area light sample. Auto: 1 for point light, 16 for step 4, 24 for step 6, 32 for step 5.",
     )
     parser.add_argument(
         "--output",
@@ -54,11 +54,11 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    VALID_STEPS = {1, 2, 3, 4, 4.1, 5}
+    VALID_STEPS = {1, 2, 3, 3.1, 4, 5, 6}
 
     # Validate arguments
     if args.step is not None and args.step not in VALID_STEPS:
-        print("Error: --step must be 1, 2, 3, 4, 4.1, or 5", file=sys.stderr)
+        print("Error: --step must be 1, 2, 3, 3.1, 4, 5, or 6", file=sys.stderr)
         return 1
 
     if args.rays_per_pixel is not None and args.rays_per_pixel < 1:
@@ -75,9 +75,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.step is not None:
             # Render a single step
             scenes = Scene.default_steps()
+            
+            # Handle step 3.1 (key is 31 in the dictionary)
+            scene_key = 31 if args.step == 3.1 else args.step
             pipeline.render_step(
                 step=args.step,
-                scene=scenes[args.step],
+                scene=scenes[scene_key],
                 rays_per_pixel=args.rays_per_pixel,
                 light_samples=args.light_samples,
             )

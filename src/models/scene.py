@@ -82,7 +82,7 @@ class Scene:
         """
         # Camera: positioned at (0, 2, 5), pointing at sphere center (0, 1, 0)
         camera = PinholeCamera(
-            eye=glm.vec3(0.0, 2.0, 5.0),
+            eye=glm.vec3(0.0, 0.5, 5.0),
             look_at=glm.vec3(0.0, 1.0, 0.0),
         )
 
@@ -108,13 +108,13 @@ class Scene:
             position=glm.vec3(0.0, 2.0, 3.0),
             intensity=glm.vec3(2.0, 2.0, 2.0),
         )
+        
         # Brighter point light for steps 2-4 so specular highlights are visible
         point_light_bright = PointLight(
-            position=glm.vec3(0.0, 2.0, 3.0),
-            intensity=glm.vec3(4.0, 4.0, 4.0),
+            position=glm.vec3(0.0, 3.0, 3.0),
+            intensity=glm.vec3(3.0, 3.0, 3.0),
         )
-        # Point lights for step 4: two lights, one on LEFT and one on RIGHT
-        # Both positioned closer to the sphere for stronger illumination
+        # Point lights for step 3 dual-light variant
         point_light_left = PointLight(
             position=glm.vec3(-3.0, 3.0, 0.0),
             intensity=glm.vec3(3.0, 3.0, 3.0),
@@ -125,19 +125,22 @@ class Scene:
             intensity=glm.vec3(3.0, 3.0, 3.0),
         )
 
-        # Area light for step 4.1: positioned on the LEFT side, centered
-        area_light_41 = AreaLight(
-            corner=glm.vec3(-3.5, 3.0, 0.0),
-            edge_u=glm.vec3(0.0, 0.0, 2.0),
-            edge_v=glm.vec3(0.0, -2.0, 0.0),
-            intensity=glm.vec3(3.0, 3.0, 3.0),
+        # Area light for step 5: positioned above the ellipsoid
+        # Using uniform sampling with 32 samples per pixel
+        area_light_step5 = AreaLight(
+            corner=glm.vec3(-2.0, 5.0, -2.0),
+            edge_u=glm.vec3(4.0, 0.0, 0.0),
+            edge_v=glm.vec3(0.0, 0.0, 4.0),
+            intensity=glm.vec3(5.0, 5.0, 5.0),
         )
 
-        # Point light for step 4.1: positioned on the RIGHT side, centered
-        # Opposite side from the area light
-        point_light_41 = PointLight(
-            position=glm.vec3(3.0, 3.0, 0.0),
-            intensity=glm.vec3(3.0, 3.0, 3.0),
+        # Area light for step 6: rectangular light above the sphere
+        # Using uniform sampling with 16 samples per pixel
+        area_light_step6 = AreaLight(
+            corner=glm.vec3(-2.0, 5.0, -2.0),
+            edge_u=glm.vec3(4.0, 0.0, 0.0),
+            edge_v=glm.vec3(0.0, 0.0, 4.0),
+            intensity=glm.vec3(5.0, 5.0, 5.0),
         )
 
         scenes: dict[int, Scene] = {}
@@ -163,41 +166,51 @@ class Scene:
         )
 
         # Step 3: point light (bright), Phong, shadows, antialiasing
+        # Single light variant (rendered separately)
         scenes[3] = cls(
             objects=[sphere, plane],
             lights=[point_light_bright],
             camera=camera,
             ambient_light=ambient_2to5,
         )
-
-        # Step 4: two point lights (left + right), Phong, shadows, antialiasing
-        scenes[4] = cls(
+        
+        # Step 3 dual light variant (rendered separately)
+        scenes[31] = cls(
             objects=[sphere, plane],
             lights=[point_light_left, point_light_right],
             camera=camera,
             ambient_light=ambient_2to5,
         )
 
-        # Step 4.1: same as step 3 (point light + Phong + AA) but with
-        # area light instead of point light — test for shadow + penumbra
-        # Now includes both area light (soft shadows) and point light (hard shadows)
-        scenes[4.1] = cls(
+        # Step 4: area light (rectangular) with uniform sampling (16 samples), sphere
+        # Replaced point light with area light for soft shadows
+        scenes[4] = cls(
             objects=[sphere, plane],
-            lights=[area_light_41, point_light_41],
+            lights=[area_light_step6],
             camera=camera,
             ambient_light=ambient_2to5,
         )
 
-        # Step 5: area light (left), Phong, ellipsoid
+        # Step 5: area light (rectangular) with uniform sampling (24 samples), ellipsoid
         # Camera: moved back to see full ellipsoid (center at y=1.8, height ~3.6)
+        # Using same area light configuration as step 6
         camera_step5 = PinholeCamera(
             eye=glm.vec3(0.0, 3.0, 7.0),
             look_at=glm.vec3(0.0, 1.8, 0.0),
         )
         scenes[5] = cls(
             objects=[ellipsoid, plane],
-            lights=[area_light_41],
+            lights=[area_light_step6],
             camera=camera_step5,
+            ambient_light=ambient_2to5,
+        )
+
+        # Step 6: area light (rectangular) with uniform sampling (16 samples), sphere
+        # Same camera as step 4 for direct comparison
+        scenes[6] = cls(
+            objects=[sphere, plane],
+            lights=[area_light_step6],
+            camera=camera,
             ambient_light=ambient_2to5,
         )
 

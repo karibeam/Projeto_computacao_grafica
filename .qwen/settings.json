@@ -15,7 +15,9 @@
       "Bash(bash *)",
       "Bash(pytest *)",
       "Bash(ruff *)",
-      "Bash(mypy *)"
+      "Bash(mypy *)",
+      "Bash(git rev-parse *)",
+      "Bash(timeout *)"
     ]
   },
   "$version": 3
