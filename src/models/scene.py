@@ -145,9 +145,9 @@ class Scene:
 
         scenes: dict[int, Scene] = {}
 
-        # Ambient per step: step 1 = 0.1, steps 2-5 = 0.2
+        # Ambient per step: step 1 = 0.1, steps 1.5-6 = 0.2
         ambient_1 = glm.vec3(0.1, 0.1, 0.1)
-        ambient_2to5 = glm.vec3(0.2, 0.2, 0.2)
+        ambient_15to6 = glm.vec3(0.2, 0.2, 0.2)
 
         # Step 1: point light, flat red, no shadows
         scenes[1] = cls(
@@ -157,12 +157,20 @@ class Scene:
             ambient_light=ambient_1,
         )
 
+        # Step 1.5: point light, flat color with shadows (no Phong)
+        scenes[15] = cls(
+            objects=[sphere, plane],
+            lights=[point_light_bright],
+            camera=camera,
+            ambient_light=ambient_15to6,
+        )
+
         # Step 2: point light (bright), Phong, shadows
         scenes[2] = cls(
             objects=[sphere, plane],
             lights=[point_light_bright],
             camera=camera,
-            ambient_light=ambient_2to5,
+            ambient_light=ambient_15to6,
         )
 
         # Step 3: point light (bright), Phong, shadows, antialiasing
@@ -171,15 +179,15 @@ class Scene:
             objects=[sphere, plane],
             lights=[point_light_bright],
             camera=camera,
-            ambient_light=ambient_2to5,
+            ambient_light=ambient_15to6,
         )
-        
+
         # Step 3 dual light variant (rendered separately)
         scenes[31] = cls(
             objects=[sphere, plane],
             lights=[point_light_left, point_light_right],
             camera=camera,
-            ambient_light=ambient_2to5,
+            ambient_light=ambient_15to6,
         )
 
         # Step 4: area light (rectangular) with uniform sampling (16 samples), sphere
@@ -188,7 +196,7 @@ class Scene:
             objects=[sphere, plane],
             lights=[area_light_step6],
             camera=camera,
-            ambient_light=ambient_2to5,
+            ambient_light=ambient_15to6,
         )
 
         # Step 5: area light (rectangular) with uniform sampling (24 samples), ellipsoid
@@ -202,7 +210,7 @@ class Scene:
             objects=[ellipsoid, plane],
             lights=[area_light_step6],
             camera=camera_step5,
-            ambient_light=ambient_2to5,
+            ambient_light=ambient_15to6,
         )
 
         # Step 6: area light (rectangular) with uniform sampling (16 samples), sphere
@@ -211,7 +219,7 @@ class Scene:
             objects=[sphere, plane],
             lights=[area_light_step6],
             camera=camera,
-            ambient_light=ambient_2to5,
+            ambient_light=ambient_15to6,
         )
 
         return scenes

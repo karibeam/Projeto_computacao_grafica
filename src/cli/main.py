@@ -25,7 +25,7 @@ def main(argv: list[str] | None = None) -> int:
         "--step",
         type=float,
         default=None,
-        help="Rendering step (1-6 or 3.1). Default: run all steps.",
+        help="Rendering step (1-6, 1.5, or 3.1). Default: run all steps.",
     )
     parser.add_argument(
         "--rays-per-pixel",
@@ -54,11 +54,11 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    VALID_STEPS = {1, 2, 3, 3.1, 4, 5, 6}
+    VALID_STEPS = {1, 1.5, 2, 3, 3.1, 4, 5, 6}
 
     # Validate arguments
     if args.step is not None and args.step not in VALID_STEPS:
-        print("Error: --step must be 1, 2, 3, 3.1, 4, 5, or 6", file=sys.stderr)
+        print("Error: --step must be 1, 1.5, 2, 3, 3.1, 4, 5, or 6", file=sys.stderr)
         return 1
 
     if args.rays_per_pixel is not None and args.rays_per_pixel < 1:
@@ -75,9 +75,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.step is not None:
             # Render a single step
             scenes = Scene.default_steps()
-            
-            # Handle step 3.1 (key is 31 in the dictionary)
-            scene_key = 31 if args.step == 3.1 else args.step
+
+            # Handle step 1.5 and 3.1 (keys are 15 and 31 in the dictionary)
+            if args.step == 1.5:
+                scene_key = 15
+            elif args.step == 3.1:
+                scene_key = 31
+            else:
+                scene_key = args.step
+
             pipeline.render_step(
                 step=args.step,
                 scene=scenes[scene_key],

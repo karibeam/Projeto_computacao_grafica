@@ -85,6 +85,9 @@ class Renderer:
         if self.step == 1:
             # Step 1: flat color, no shadows
             return compute_flat_color(hit, self.scene, use_shadows=False)
+        elif self.step == 15:
+            # Step 1.5: flat color with shadows (no Phong)
+            return compute_flat_color(hit, self.scene, use_shadows=True)
         else:
             # Steps 2+: Phong model
             view_dir = glm.normalize(self.scene.camera.eye - hit.point)

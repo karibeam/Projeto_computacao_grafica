@@ -47,7 +47,7 @@ def compute_flat_color(
             if use_shadows:
                 # Simple shadow check — binary (in shadow or not)
                 shadow = _is_in_shadow_point(
-                    hit.point, light_dir_norm, light_dist, scene
+                    hit.point, hit.normal, light_dir_norm, light_dist, scene
                 )
                 if shadow:
                     continue
@@ -66,7 +66,7 @@ def compute_flat_color(
 
             if use_shadows:
                 shadow = _is_in_shadow_point(
-                    hit.point, light_dir_norm, light_dist, scene
+                    hit.point, hit.normal, light_dir_norm, light_dist, scene
                 )
                 if shadow:
                     continue
