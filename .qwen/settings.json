@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(speckit.git.feature)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh *)",
+      "Bash(.specify/scripts/bash/setup-plan.sh *)",
+      "Bash(source *)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(find *)",
+      "Bash(bash *)",
+      "Bash(pytest *)",
+      "Bash(ruff *)",
+      "Bash(mypy *)"
+    ]
+  },
+  "$version": 3
+}
