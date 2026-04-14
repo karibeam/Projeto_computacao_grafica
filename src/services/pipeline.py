@@ -24,6 +24,7 @@ STEP_DESCRIPTIONS: dict[float, str] = {
     4: "Area light (rectangular) with uniform sampling (16 samples) + sphere",
     5: "Area light (rectangular) with uniform sampling (24 samples) + ellipsoid",
     6: "Area light (rectangular) with uniform sampling (24 samples) + sphere",
+    7: "Box with point light, Phong, shadows",
 }
 
 # Output filename mapping (descriptive names)
@@ -36,6 +37,7 @@ STEP_FILENAMES: dict[float, str] = {
     4: "step4_sphere_area_light_uniform_16_samples",
     5: "step5_ellipsoid_area_light_uniform_24_samples",
     6: "step6_sphere_area_light_uniform_24_samples",
+    7: "step7_box_point_light_phong_shadows",
 }
 
 # Scene key mapping: maps float step number to int key used in scenes dictionary

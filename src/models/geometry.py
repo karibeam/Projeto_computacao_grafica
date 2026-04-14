@@ -257,3 +257,125 @@ class Plane:
         hit_point = ray.point_at(t)
 
         return HitRecord(t, hit_point, self.normal, self.material, self.object_id)
+
+
+class Box:
+    """An axis-aligned box defined by min and max corners in local space.
+
+    The local-to-world matrix encodes position (translation) and size (scale).
+
+    Attributes:
+        local_to_world: Transformation matrix from local to world space.
+        world_to_local: Inverse of local_to_world.
+        material: Surface material.
+        object_id: Unique identifier.
+    """
+
+    __slots__ = ("local_to_world", "world_to_local", "material", "object_id", "min_corner", "max_corner")
+
+    def __init__(
+        self,
+        center: glm.vec3 = glm.vec3(0.0, 1.0, 0.0),
+        size: glm.vec3 = glm.vec3(1.0, 1.0, 1.0),
+        material: Material | None = None,
+        object_id: int = 3,
+    ) -> None:
+        """Initialize a Box.
+
+        Args:
+            center: World-space center position.
+            size: Dimensions (width, height, depth).
+            material: Surface material (default: flat red).
+            object_id: Unique object identifier.
+        """
+        self.min_corner = glm.vec3(-0.5, -0.5, -0.5)
+        self.max_corner = glm.vec3(0.5, 0.5, 0.5)
+        
+        self.local_to_world = glm.translate(glm.mat4(1.0), center) * glm.scale(
+            glm.mat4(1.0), size
+        )
+        self.world_to_local = glm.inverse(self.local_to_world)
+        self.material = material if material is not None else Material.flat_red()
+        self.object_id = object_id
+
+    def intersect(self, ray: Ray) -> HitRecord | None:
+        """Test ray-box intersection using slab method in local space.
+
+        Args:
+            ray: World-space ray to test.
+
+        Returns:
+            HitRecord if intersection found, None otherwise.
+        """
+        # Transform ray to local space
+        origin_local = glm.vec3(self.world_to_local * glm.vec4(ray.origin, 1.0))
+        dir_local = glm.vec3(self.world_to_local * glm.vec4(ray.direction, 0.0))
+        dir_local = glm.normalize(dir_local)
+
+        t_min = (self.min_corner[0] - origin_local[0]) / dir_local[0]
+        t_max = (self.max_corner[0] - origin_local[0]) / dir_local[0]
+
+        if t_min > t_max:
+            t_min, t_max = t_max, t_min
+
+        ty_min = (self.min_corner[1] - origin_local[1]) / dir_local[1]
+        ty_max = (self.max_corner[1] - origin_local[1]) / dir_local[1]
+
+        if ty_min > ty_max:
+            ty_min, ty_max = ty_max, ty_min
+
+        if (t_min > ty_max) or (ty_min > t_max):
+            return None
+
+        if ty_min > t_min:
+            t_min = ty_min
+
+        if ty_max < t_max:
+            t_max = ty_max
+
+        tz_min = (self.min_corner[2] - origin_local[2]) / dir_local[2]
+        tz_max = (self.max_corner[2] - origin_local[2]) / dir_local[2]
+
+        if tz_min > tz_max:
+            tz_min, tz_max = tz_max, tz_min
+
+        if (t_min > tz_max) or (tz_min > t_max):
+            return None
+
+        if tz_min > t_min:
+            t_min = tz_min
+
+        if tz_max < t_max:
+            t_max = tz_max
+
+        if t_min < EPSILON:
+            if t_max < EPSILON:
+                return None
+            t_min = t_max
+
+        # Hit point in local space
+        hit_local = origin_local + t_min * dir_local
+
+        # Transform to world space
+        hit_world = glm.vec3(self.local_to_world * glm.vec4(hit_local, 1.0))
+
+        # Compute normal in local space based on which face was hit
+        normal_local = glm.vec3(0.0)
+        for i in range(3):
+            if abs(hit_local[i] - self.min_corner[i]) < EPSILON:
+                normal_local[i] = -1.0
+            elif abs(hit_local[i] - self.max_corner[i]) < EPSILON:
+                normal_local[i] = 1.0
+
+        # Transform normal to world space using inverse-transpose
+        inv_transpose = glm.transpose(glm.mat3(self.world_to_local))
+        normal_world = glm.normalize(inv_transpose * normal_local)
+
+        # World-space t
+        t_world = glm.length(hit_world - ray.origin)
+        if glm.dot(ray.direction, hit_world - ray.origin) < 0:
+            t_world = -t_world
+
+        return HitRecord(
+            t_world, hit_world, normal_world, self.material, self.object_id
+        )

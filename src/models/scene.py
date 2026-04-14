@@ -7,10 +7,10 @@ from typing import Union  # noqa: F401
 from pyglm import glm
 
 from src.models.camera import PinholeCamera
-from src.models.geometry import Ellipsoid, Plane, Sphere
+from src.models.geometry import Box, Ellipsoid, Plane, Sphere
 from src.models.light import AreaLight, PointLight
 
-SceneObject = Sphere | Ellipsoid | Plane
+SceneObject = Sphere | Ellipsoid | Plane | Box
 SceneLight = PointLight | AreaLight
 
 
@@ -125,6 +125,13 @@ class Scene:
             intensity=glm.vec3(3.0, 3.0, 3.0),
         )
 
+        # Box for step 7: positioned at same location as sphere
+        box = Box(
+            center=glm.vec3(0.0, 1.0, 0.0),
+            size=glm.vec3(1.5, 1.5, 1.5),
+            object_id=3,
+        )
+
         # Area light for step 5: positioned above the ellipsoid
         # Using uniform sampling with 32 samples per pixel
         area_light_step5 = AreaLight(
@@ -218,6 +225,15 @@ class Scene:
         scenes[6] = cls(
             objects=[sphere, plane],
             lights=[area_light_step6],
+            camera=camera,
+            ambient_light=ambient_15to6,
+        )
+
+        # Step 7: box with point light (bright), Phong, shadows
+        # Same illumination as steps 2-4 (single point light)
+        scenes[7] = cls(
+            objects=[box, plane],
+            lights=[point_light_bright],
             camera=camera,
             ambient_light=ambient_15to6,
         )
