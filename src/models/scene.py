@@ -7,10 +7,11 @@ from typing import Union  # noqa: F401
 from pyglm import glm
 
 from src.models.camera import PinholeCamera
-from src.models.geometry import Box, Ellipsoid, Plane, Sphere
+from src.models.geometry import Box, Ellipsoid, Plane, Sphere, Tetrahedron
 from src.models.light import AreaLight, PointLight
+from src.models.material import Material
 
-SceneObject = Sphere | Ellipsoid | Plane | Box
+SceneObject = Sphere | Ellipsoid | Plane | Box | Tetrahedron
 SceneLight = PointLight | AreaLight
 
 
@@ -125,10 +126,13 @@ class Scene:
             intensity=glm.vec3(3.0, 3.0, 3.0),
         )
 
-        # Box for step 7: positioned at same location as sphere
+        import math
+        
+        # Box for step 7: positioned at same location as sphere, but rotated to be visible in 3D
         box = Box(
             center=glm.vec3(0.0, 1.0, 0.0),
-            size=glm.vec3(1.5, 1.5, 1.5),
+            size=glm.vec3(1.2, 1.2, 1.2),
+            rotation=glm.vec3(math.radians(30), math.radians(45), 0.0),
             object_id=3,
         )
 
@@ -237,5 +241,95 @@ class Scene:
             camera=camera,
             ambient_light=ambient_15to6,
         )
+
+        # Step 8: box and tetrahedron side by side
+        tetra_size = 1.8
+        tetra_center = glm.vec3(1.2, tetra_size * 0.5 / math.sqrt(3), -0.5)
+        tetrahedron = Tetrahedron(
+            center=tetra_center,
+            size=glm.vec3(tetra_size, tetra_size, tetra_size),
+            rotation=glm.vec3(math.atan(-math.sqrt(2)), -math.radians(45), 0.0),
+            material=Material(color=glm.vec3(0.1, 0.4, 1.0)),
+            object_id=4,
+        )
+        
+        # Spin the tetrahedron around its vertical axis to show the lateral face
+        spin_mat = glm.rotate(glm.mat4(1.0), math.radians(30), glm.vec3(0.0, 1.0, 0.0))
+        spin_transform = glm.translate(glm.mat4(1.0), tetra_center) * spin_mat * glm.translate(glm.mat4(1.0), -tetra_center)
+        tetrahedron.local_to_world = spin_transform * tetrahedron.local_to_world
+        tetrahedron.world_to_local = glm.inverse(tetrahedron.local_to_world)
+        box_size = 1.2
+        box_step8 = Box(
+            center=glm.vec3(-1.2, box_size / 2.0, 1.5),
+            size=glm.vec3(box_size, box_size, box_size),
+            rotation=glm.vec3(0.0, math.radians(45), 0.0),
+            object_id=3,
+        )
+        camera_step8 = PinholeCamera(
+            eye=glm.vec3(0.0, 1.5, 7.5),
+            look_at=glm.vec3(0.0, 1.0, 0.0),
+        )
+        scenes[8] = cls(
+            objects=[box_step8, tetrahedron, plane],
+            lights=[point_light_left, point_light_right],
+            camera=camera_step8,
+            ambient_light=ambient_15to6,
+        )
+
+        # Step 9: Cornell Box with Area Light
+        floor = Plane(point=glm.vec3(0.0, 0.0, 0.0), normal=glm.vec3(0.0, 1.0, 0.0), material=Material(color=glm.vec3(0.8, 0.8, 0.8)), object_id=10)
+        ceiling = Plane(point=glm.vec3(0.0, 6.0, 0.0), normal=glm.vec3(0.0, -1.0, 0.0), material=Material(color=glm.vec3(0.8, 0.8, 0.8)), object_id=11)
+        back_wall = Plane(point=glm.vec3(0.0, 0.0, -3.0), normal=glm.vec3(0.0, 0.0, 1.0), material=Material(color=glm.vec3(0.8, 0.8, 0.8)), object_id=12)
+        left_wall = Plane(point=glm.vec3(-3.0, 0.0, 0.0), normal=glm.vec3(1.0, 0.0, 0.0), material=Material(color=glm.vec3(0.8, 0.1, 0.1)), object_id=13)
+        right_wall = Plane(point=glm.vec3(3.0, 0.0, 0.0), normal=glm.vec3(-1.0, 0.0, 0.0), material=Material(color=glm.vec3(0.1, 0.8, 0.1)), object_id=14)
+
+        area_light_step9 = AreaLight(
+            corner=glm.vec3(-1.5, 5.9, -1.5),
+            edge_u=glm.vec3(3.0, 0.0, 0.0),
+            edge_v=glm.vec3(0.0, 0.0, 3.0),
+            intensity=glm.vec3(1.5, 1.5, 1.5),
+        )
+
+        scenes[9] = cls(
+            objects=[box_step8, tetrahedron, floor, ceiling, back_wall, left_wall, right_wall],
+            lights=[area_light_step9],
+            camera=camera_step8,
+            ambient_light=ambient_15to6,
+        )
+
+        # Step 10: Reflective sphere and visual area light in Cornell Box
+        ceiling_10 = Plane(point=glm.vec3(0.0, 6.0, 0.0), normal=glm.vec3(0.0, -1.0, 0.0), material=Material(color=glm.vec3(0.8, 0.8, 0.8)), object_id=11)
+        
+        area_light_step10 = AreaLight(
+            corner=glm.vec3(-0.2, 5.9, 2.8),
+            edge_u=glm.vec3(0.4, 0.0, 0.0),
+            edge_v=glm.vec3(0.0, 0.0, 0.4),
+            intensity=glm.vec3(1.5, 1.5, 1.5),
+        )
+        
+        light_box = Box(
+            center=glm.vec3(0.0, 5.95, 3.0),
+            size=glm.vec3(0.4, 0.05, 0.4),
+            rotation=glm.vec3(0.0, 0.0, 0.0),
+            material=Material(color=glm.vec3(1.0, 1.0, 1.0), is_emissive=True),
+            object_id=15,
+        )
+        
+        mirror_sphere = Sphere(
+            center=glm.vec3(-1.2, 1.7, 1.5),
+            radius=0.5,
+            material=Material(color=glm.vec3(0.1, 0.1, 0.1), specular=0.9, shininess=100.0, reflectivity=0.85),
+            object_id=16,
+        )
+
+        camera_step10 = PinholeCamera(
+            eye=glm.vec3(0.0, 2.0, 8.5),
+            look_at=glm.vec3(0.0, 3.0, 1.0),
+        )
+
+        scenes[10] = cls(
+            objects=[box_step8, tetrahedron, mirror_sphere, light_box, floor, ceiling_10, back_wall, left_wall, right_wall],
+            lights=[area_light_step10],
+            camera=camera_step10)
 
         return scenes

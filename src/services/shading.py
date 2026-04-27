@@ -110,6 +110,10 @@ def compute_phong(
     """
     color = glm.vec3(0.0)
     mat = hit.material
+    
+    if getattr(mat, "is_emissive", False):
+        return mat.color * 3.0
+        
     N = hit.normal
     V = view_dir
 

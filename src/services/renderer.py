@@ -93,7 +93,7 @@ class Renderer:
             view_dir = glm.normalize(self.scene.camera.eye - hit.point)
             use_shadows = self.step >= 2
 
-            return compute_phong(
+            base_color = compute_phong(
                 hit,
                 self.scene,
                 view_dir,
@@ -101,6 +101,14 @@ class Renderer:
                 light_samples=self.light_samples,
                 rng=self._rng,
             )
+            
+            if getattr(hit.material, "reflectivity", 0.0) > 0.0 and depth < 3:
+                reflect_dir = glm.reflect(ray.direction, hit.normal)
+                reflect_ray = Ray(origin=hit.point + hit.normal * 1e-4, direction=reflect_dir)
+                reflect_color = self.trace_ray(reflect_ray, depth + 1)
+                return glm.mix(base_color, reflect_color, hit.material.reflectivity)
+                
+            return base_color
 
     def render(self) -> Film:
         """Execute the full rendering pass.

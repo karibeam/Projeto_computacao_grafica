@@ -14,9 +14,11 @@ class Material:
         diffuse: Diffuse reflection coefficient k_d (default: 0.7).
         specular: Specular reflection coefficient k_s (default: 0.3).
         shininess: Specular exponent n (default: 32.0).
+        reflectivity: Reflection factor [0, 1] for recursive rays (default: 0.0).
+        is_emissive: Whether the material emits light (bypasses shading) (default: False).
     """
 
-    __slots__ = ("color", "ambient", "diffuse", "specular", "shininess")
+    __slots__ = ("color", "ambient", "diffuse", "specular", "shininess", "reflectivity", "is_emissive")
 
     def __init__(
         self,
@@ -25,6 +27,8 @@ class Material:
         diffuse: float = 0.7,
         specular: float = 0.3,
         shininess: float = 32.0,
+        reflectivity: float = 0.0,
+        is_emissive: bool = False,
     ) -> None:
         """Initialize a Material.
 
@@ -34,12 +38,16 @@ class Material:
             diffuse: Diffuse reflection coefficient.
             specular: Specular reflection coefficient.
             shininess: Specular highlight sharpness exponent.
+            reflectivity: Reflection fraction [0, 1].
+            is_emissive: If True, object is self-illuminated.
         """
         self.color = color
         self.ambient = max(0.0, min(1.0, ambient))
         self.diffuse = max(0.0, min(1.0, diffuse))
         self.specular = max(0.0, min(1.0, specular))
         self.shininess = max(1.0, shininess)
+        self.reflectivity = max(0.0, min(1.0, reflectivity))
+        self.is_emissive = is_emissive
 
     @classmethod
     def flat_red(cls) -> Material:

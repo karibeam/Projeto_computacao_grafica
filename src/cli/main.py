@@ -54,11 +54,11 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    VALID_STEPS = {1, 1.5, 2, 3, 3.1, 4, 5, 6, 7}
+    VALID_STEPS = {1, 1.5, 2, 3, 3.1, 4, 5, 6, 7, 8, 9, 10}
 
     # Validate arguments
     if args.step is not None and args.step not in VALID_STEPS:
-        print("Error: --step must be 1, 1.5, 2, 3, 3.1, 4, 5, 6, or 7", file=sys.stderr)
+        print("Error: --step must be 1, 1.5, 2, 3, 3.1, 4, 5, 6, 7, 8, 9, or 10", file=sys.stderr)
         return 1
 
     if args.rays_per_pixel is not None and args.rays_per_pixel < 1:

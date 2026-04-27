@@ -25,6 +25,9 @@ STEP_DESCRIPTIONS: dict[float, str] = {
     5: "Area light (rectangular) with uniform sampling (24 samples) + ellipsoid",
     6: "Area light (rectangular) with uniform sampling (24 samples) + sphere",
     7: "Box with point light, Phong, shadows",
+    8: "Box and Tetrahedron side by side with point light",
+    9: "Cornell Box with Area Light and low samples",
+    10: "Cornell Box with Reflections and emissive lighting",
 }
 
 # Output filename mapping (descriptive names)
@@ -38,6 +41,9 @@ STEP_FILENAMES: dict[float, str] = {
     5: "step5_ellipsoid_area_light_uniform_24_samples",
     6: "step6_sphere_area_light_uniform_24_samples",
     7: "step7_box_point_light_phong_shadows",
+    8: "step8_box_and_tetrahedron_side_by_side",
+    9: "step9_cornell_box_area_light",
+    10: "step10_cornell_box_reflections",
 }
 
 # Scene key mapping: maps float step number to int key used in scenes dictionary
@@ -72,6 +78,8 @@ class Pipeline:
 
     def _auto_rays_per_pixel(self, step: int) -> int:
         """Determine default rays per pixel for a step."""
+        if step == 10:
+            return 32
         if step >= 5:
             return 8  # Consistent with other area light steps
         if step >= 4:
@@ -82,6 +90,10 @@ class Pipeline:
 
     def _auto_light_samples(self, step: float) -> int:
         """Determine default light samples for a step."""
+        if step == 10:
+            return 8
+        if step == 9:
+            return 4  # Low samples for Cornell area light
         if step in (5, 6):
             return 24  # Area light (rectangular) with uniform sampling
         if step == 4:
